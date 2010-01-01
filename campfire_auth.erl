@@ -4,7 +4,7 @@
 %% module to handle campfire authentication tuples
 
 -module(campfire_auth).
--author(darrik_mazey).
+-author(darrik@darmasoft.com).
 
 -export([start/0]).
 -export([stop/0]).
@@ -32,17 +32,14 @@ stop() ->
 	true.
 
 request(#campfire_auth{} = CA) ->
-	io:format("request/1~n", []),
 	campfire_auth ! #msg_campfire_auth_request{sender=self(), ca=CA},
-	true.
+	CA.
 
 request(Sub, User) ->
-	io:format("request/2~n", []),
 	CA = #campfire_auth{subdomain=Sub, username=User},
 	request(CA).
 
 request(Sub, User, Pass) ->
-	io:format("request/3~n", []),
 	CA = #campfire_auth{subdomain=Sub, username=User, password=Pass},
 	request(CA).
 
@@ -51,12 +48,18 @@ release() ->
 	true.
 
 find(P) ->
-	campfire_auth ! #msg_campfire_auth_find{sender=self(), p=P},
 	CAsrv = whereis(campfire_auth),
-	receive
-		#msg_campfire_auth_res{sender=CAsrv, p=P, ca=CA} -> CA;
-		#msg_campfire_auth_res{sender=CAsrv, p=P, ca=null} -> {ok, notfound}
-	end.
+	Ret = case CAsrv of
+		undefined ->
+			{error, noserver};
+		Pid ->
+			campfire_auth ! #msg_campfire_auth_find{sender=self(), p=P},
+			receive
+				#msg_campfire_auth_res{sender=Pid, p=P, ca=CA} -> CA;
+				#msg_campfire_auth_res{sender=Pid, p=P, ca=null} -> {ok, notfound}
+			end
+	end,
+	Ret.
 
 init(null) ->
 	loop([]);
@@ -67,18 +70,12 @@ loop(State) ->
 	receive
 		#msg_campfire_auth_die{} -> true;
 		#msg_campfire_auth_request{sender=Sender, ca=#campfire_auth{subdomain=_Subdomain, username=_Username, password=_Password} = CA} ->
-			%io:format("auth request received from ~p for { ~p, ~p, ~p }~n", [Sender, Subdomain, Username, Password]),
-			io:format("auth request received from ~p for ~p~n", [Sender, CA]),
 			NewState = store({Sender, CA}, State),
-			io:format("new state: ~p~n", [NewState]),
 			loop(NewState);
 		#msg_campfire_auth_drop{sender=Sender, ca=CA} ->
-			io:format("drop request received from ~p~n", [Sender]),
 			NewState = drop({Sender, CA}, State),
-			io:format("new state: ~p~n", [NewState]),
 			loop(NewState);
 		#msg_campfire_auth_find{sender=Sender, p=P} ->
-			io:format("find request received from ~p for ~p~n", [Sender, P]),
 			Sender ! #msg_campfire_auth_res{sender=self(), p=P, ca=retr(P, State)},
 			loop(State);
 		_ -> loop(State)
