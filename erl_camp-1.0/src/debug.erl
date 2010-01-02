@@ -44,7 +44,7 @@ init() ->
 loop(State) ->
 	receive
 		#debug_log_msg{sender=_Sender, format=Format, args=Args} ->
-			dispatch(Format, Args, State),
+			dispatch("[~s] " ++ Format, [timestamp:now()|Args], State),
 			loop(State);
 		#debug_log_add_method{sender=_Sender, module=Mod, options=Options} ->
 			NewState = add_to_state({Mod, Options}, State),
