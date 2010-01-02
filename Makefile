@@ -1,11 +1,19 @@
 
+ERL=erl
 ERLC=erlc
-ERLS=$(wildcard *.erl)
+ERLS=$(wildcard src/*.erl)
 BEAMS=$(ERLS:.erl=.beam)
 
 all: force
-force: $(BEAMS)
+force: compile shell
+compile: $(BEAMS)
 
 %.beam: %.erl
 	@echo [$(ERLC)] $<
-	@$(ERLC) $<
+	@$(ERLC) -o ebin/ $<
+
+clean:
+	rm -f ebin/*.beam
+
+shell:
+	$(ERL) -pa ebin/
