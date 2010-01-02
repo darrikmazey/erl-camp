@@ -8,10 +8,10 @@
 
 -export([start/0]).
 -export([stop/0]).
--export([request/1]).
--export([request/2]).
--export([request/3]).
--export([release/0]).
+-export([login/1]).
+-export([login/2]).
+-export([login/3]).
+-export([logout/0]).
 -export([find/1]).
 
 -export([init/1]).
@@ -31,19 +31,20 @@ stop() ->
 	campfire_auth ! #msg_campfire_auth_die{},
 	true.
 
-request(#campfire_auth{} = CA) ->
+login(#campfire_auth{} = CA) ->
+	start(),
 	campfire_auth ! #msg_campfire_auth_request{sender=self(), ca=CA},
 	CA.
 
-request(Sub, User) ->
+login(Sub, User) ->
 	CA = #campfire_auth{subdomain=Sub, username=User},
-	request(CA).
+	login(CA).
 
-request(Sub, User, Pass) ->
+login(Sub, User, Pass) ->
 	CA = #campfire_auth{subdomain=Sub, username=User, password=Pass},
-	request(CA).
+	login(CA).
 
-release() ->
+logout() ->
 	campfire_auth ! #msg_campfire_auth_drop{sender=self()},
 	true.
 
@@ -55,8 +56,8 @@ find(P) ->
 		Pid ->
 			campfire_auth ! #msg_campfire_auth_find{sender=self(), p=P},
 			receive
-				#msg_campfire_auth_res{sender=Pid, p=P, ca=CA} -> CA;
-				#msg_campfire_auth_res{sender=Pid, p=P, ca=null} -> {ok, notfound}
+				#msg_campfire_auth_res{sender=Pid, p=P, ca=null} -> {ok, notfound};
+				#msg_campfire_auth_res{sender=Pid, p=P, ca=CA} -> CA
 			end
 	end,
 	Ret.
