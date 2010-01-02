@@ -16,6 +16,7 @@ ebin/%.beam: src/%.erl
 
 clean:
 	rm -f ebin/*.beam
+	rm -f erl_crash.dump
 
 shell:
 	$(ERL) -pa ebin/
