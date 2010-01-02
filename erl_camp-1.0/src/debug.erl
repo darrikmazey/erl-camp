@@ -22,7 +22,10 @@ log(Format, Args) ->
 
 log_to(Mod, Options) ->
 	start(),
-	debug_srv ! #debug_log_add_method{sender=self(), module=Mod, options=Options},
+	ModString = atom_to_list(Mod),
+	NewModString = lists:flatten(["debug_"|ModString]),
+	NewMod = list_to_atom(NewModString),
+	debug_srv ! #debug_log_add_method{sender=self(), module=NewMod, options=Options},
 	true.
 
 no_log_to(Mod, Options) ->

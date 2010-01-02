@@ -63,11 +63,14 @@ find(P) ->
 	Ret.
 
 init() ->
+	debug:log("campfire_auth: initializing"),
 	loop([]).
 
 loop(State) ->
 	receive
-		#msg_campfire_auth_die{} -> true;
+		#msg_campfire_auth_die{} ->
+			debug:log("campfire_auth: shutting down"),
+			true;
 		#msg_campfire_auth_request{sender=Sender, ca=#campfire_auth{subdomain=_Subdomain, username=_Username, password=_Password} = CA} ->
 			NewState = store({Sender, CA}, State),
 			loop(NewState);
@@ -77,7 +80,9 @@ loop(State) ->
 		#msg_campfire_auth_find{sender=Sender, p=P} ->
 			Sender ! #msg_campfire_auth_res{sender=self(), p=P, ca=retr(P, State)},
 			loop(State);
-		_ -> loop(State)
+		M ->
+			debug:log("campfire_auth: received unknown message: ~p", [M]),
+			loop(State)
 	end.
 
 store({Sender, CA}, [{Sender, _}|T]) -> [{Sender, CA}|T];

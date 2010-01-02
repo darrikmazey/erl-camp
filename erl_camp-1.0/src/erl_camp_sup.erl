@@ -11,5 +11,7 @@ start_link() ->
 	supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 init(_) ->
-	CCChild = {campfire_auth_sup, {campfire_auth_sup, start_link, []}, permanent, 2000, supervisor, [campfire_auth]},
-	{ok, {{one_for_one, 1, 1}, [CCChild]}}.
+	debug:log("erl_camp_sup: starting campfire_auth_sup, campfire_srv_sup"),
+	CAChild = {campfire_auth_sup, {campfire_auth_sup, start_link, []}, permanent, 2000, supervisor, [campfire_auth]},
+	CSChild = {campfire_srv_sup, {campfire_srv_sup, start_link, []}, permanent, 2000, supervisor, [campfire_srv]},
+	{ok, {{one_for_one, 1, 1}, [CAChild, CSChild]}}.
