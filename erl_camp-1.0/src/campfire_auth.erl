@@ -14,18 +14,18 @@
 -export([logout/0]).
 -export([find/1]).
 
--export([init/1]).
+-export([init/0]).
 
 -include("include/campfire_auth.hrl").
 
 start() ->
 	case whereis(campfire_auth) of
 		undefined ->
-			register(campfire_auth, Pid = spawn(campfire_auth, init, [null]));
+			register(campfire_auth, Pid = spawn_link(campfire_auth, init, []));
 		Pid ->
 			false
 	end,
-	Pid.
+	{ok, Pid}.
 
 stop() ->
 	campfire_auth ! #msg_campfire_auth_die{},
@@ -62,10 +62,8 @@ find(P) ->
 	end,
 	Ret.
 
-init(null) ->
-	loop([]);
-init(State) ->
-	loop(State).
+init() ->
+	loop([]).
 
 loop(State) ->
 	receive
