@@ -3,6 +3,6 @@
 	 {vsn, "1.0"},
 	 {modules, [campfire_client, campfire_auth, erl_camp]},
 	 {registered, [campfire_client, campfire_auth]},
-	 {applications, [kernel, stdlib]},
+	 {applications, [kernel, stdlib, inets]},
 	 {env, []},
 	 {mod, {erl_camp, []}}]}.
