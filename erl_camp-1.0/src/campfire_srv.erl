@@ -10,6 +10,7 @@
 -export([init/0]).
 
 -include("include/campfire_srv.hrl").
+-include("include/campfire_auth.hrl").
 
 start() ->
 	case whereis(campfire_srv) of
@@ -33,10 +34,10 @@ loop(State) ->
 		#msg_campfire_srv_die{} ->
 			debug:log("campfire_srv: shutting down"),
 			true;
-		#msg_campfire_srv_list_rooms{sender=Sender} ->
+		#msg_campfire_srv_req_rooms{sender=Sender} ->
 			debug:log("campfire_srv: received list_rooms from ~p", [Sender]),
-			CA = campfire_auth:find(Sender),
-			debug:log("campfire_srv: found ~p", [CA]),
+			RoomList = campfire_data:parse_room_list(campfire_request:room_list(Sender)),
+			Sender ! #msg_campfire_srv_rep_rooms{sender = self(), data=RoomList},
 			loop(State);
 		M ->
 			debug:log("campfire_srv: received unknown message: ~p", [M]),
@@ -44,5 +45,7 @@ loop(State) ->
 	end.
 
 list_rooms() ->
-	campfire_srv ! #msg_campfire_srv_list_rooms{sender=self()},
-	true.
+	campfire_srv ! #msg_campfire_srv_req_rooms{sender=self()},
+	receive
+		#msg_campfire_srv_rep_rooms{data=Data} -> Data
+	end.

@@ -34,7 +34,7 @@ stop() ->
 login(#campfire_auth{} = CA) ->
 	start(),
 	campfire_auth ! #msg_campfire_auth_request{sender=self(), ca=CA},
-	CA.
+	ok.
 
 login(Sub, User) ->
 	CA = #campfire_auth{subdomain=Sub, username=User},

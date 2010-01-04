@@ -6,8 +6,8 @@
 
 -include("include/campfire_data.hrl").
 
-parse_room_list({struct, [{ <<"rooms">>, Data }]}) ->
-	_RoomList = parse_rooms(Data).
+parse_room_list([{ <<"rooms">>, Data }]) ->
+	#campfire_rooms{rooms=parse_rooms(Data)}.
 
 parse_rooms([{struct, RoomData}|T]) ->
 	RoomName = extract_field(name, RoomData),
