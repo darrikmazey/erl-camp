@@ -1,5 +1,6 @@
 
-This software contains the JSON parser from mochiweb (http://code.google.com/p/mochiweb/) for expedience.
+This software contains the JSON parser from mochiweb for expedience.  Mochiweb can be found at:
+http://code.google.com/p/mochiweb/
 
 Mochiweb is licensed under the MIT license, a copy of which is included at the beginning of mochijson2.erl.
 
