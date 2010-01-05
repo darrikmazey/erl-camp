@@ -4,8 +4,10 @@
 
 -behaviour(application).
 
--export([start/2, stop/1]).
+-export([start/0, start/2, stop/1]).
 
+start() ->
+	application:start(erl_camp).
 
 start(_Type, _StartArgs) ->
 	%debug:log_to(console, {}),
