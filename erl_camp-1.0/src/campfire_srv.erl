@@ -10,6 +10,7 @@
 -export([user_data/1]).
 -export([me/0]).
 -export([is_me/1]).
+-export([transcript/1]).
 
 -export([init/0]).
 
@@ -58,6 +59,11 @@ loop(State) ->
 			debug:log("campfire_srv: received me request from ~p", [Sender]),
 			UserData = campfire_data:parse_user_data(campfire_request:me_data(Sender)),
 			Sender ! #msg_campfire_srv_rep_me{sender = self(), data=UserData},
+			loop(State);
+		#msg_campfire_srv_req_transcript{sender=Sender, room_id=RoomId, date=_Date} ->
+			debug:log("campfire_srv: received transcript request for ~p from ~p", [RoomId, Sender]),
+			Transcript = campfire_data:parse_transcript(campfire_request:transcript(Sender,RoomId)),
+			Sender ! #msg_campfire_srv_rep_transcript{sender = self(), data=Transcript},
 			loop(State);
 		M ->
 			debug:log("campfire_srv: received unknown message: ~p", [M]),
@@ -118,3 +124,20 @@ is_me(User) ->
 	MeId = Me#campfire_user.id,
 	UserId = User#campfire_user.id,
 	MeId == UserId.
+
+transcript(RoomId) when is_integer(RoomId) ->
+	campfire_srv ! #msg_campfire_srv_req_transcript{sender = self(), room_id = RoomId},
+	receive_transcript_reply();
+transcript(Room) ->
+	case Room of
+		#campfire_room{id=RoomId} ->
+			campfire_srv ! #msg_campfire_srv_req_transcript{sender = self(), room_id = RoomId},
+			receive_transcript_reply()
+	end.
+
+
+receive_transcript_reply() ->
+	receive
+		#msg_campfire_srv_rep_transcript{data=Data} -> Data
+	end.
+

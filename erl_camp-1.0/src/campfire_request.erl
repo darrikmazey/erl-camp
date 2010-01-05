@@ -48,6 +48,16 @@ me_data(Sender) ->
 			Data
 	end.
 
+transcript(Sender, Id) ->
+	CA = campfire_auth:find(Sender),
+	case CA of
+		{ok, notfound} -> [];
+		#campfire_auth{subdomain=Sub, username=User, password=Pass} ->
+			Url = transcript_url(Sub, User, Pass, Id),
+			Data = fetch_json_url(Url),
+			Data
+	end.
+
 room_list_url(Sub, User, Pass) ->
 	lists:flatten(["http://", User, ":", Pass, "@", Sub, ".campfirenow.com/rooms.json"]).
 

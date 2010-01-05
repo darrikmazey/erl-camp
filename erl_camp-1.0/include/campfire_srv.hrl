@@ -21,3 +21,8 @@
 -record(msg_campfire_srv_req_me, { sender }).
 %% campfire me data reply
 -record(msg_campfire_srv_rep_me, { sender, data }).
+
+%% campfire transcript request
+-record(msg_campfire_srv_req_transcript, { sender, room_id, date=today }).
+%% campfire transcript reply
+-record(msg_campfire_srv_rep_transcript, { sender, room_id, date, data }).

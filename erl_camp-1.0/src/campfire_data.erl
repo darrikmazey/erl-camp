@@ -58,6 +58,27 @@ parse_user_data(PropList) when is_list(PropList) ->
 	UserName = extract_field(name, PropList),
 	#campfire_user{id=UserId, type=UserType, created_at=UserCreated, admin=UserAdmin, email_address=UserEmail, name=UserName}.
 
+parse_transcript({<<"messages">>, MsgData}) ->
+	parse_messages(MsgData);
+parse_transcript([{<<"messages">>, MsgData}]) ->
+	parse_messages(MsgData).
+
+parse_messages([H|T]) ->
+	[parse_message_data(H)|parse_messages(T)];
+parse_messages(undefined) -> [];
+parse_messages([]) -> [].
+
+parse_message_data({struct, PropList}) ->
+	parse_message_data(PropList);
+parse_message_data(PropList) when is_list(PropList) ->
+	MsgType = extract_field(type, PropList),
+	MsgRoomId = extract_field(room_id, PropList),
+	MsgCreated = extract_field(created_at, PropList),
+	MsgBody = extract_field(body, PropList),
+	MsgId = extract_field(id, PropList),
+	MsgUserId = extract_field(user_id, PropList),
+	#campfire_message{type=MsgType, room_id=MsgRoomId, created_at=MsgCreated, body=MsgBody, id=MsgId, user_id=MsgUserId}.
+
 extract_field(Field, Data) when is_list(Field) ->
 	extract_field(list_to_binary(Field), Data);
 extract_field(Field, Data) when is_atom(Field) ->
